@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 16 with pgvector Extension
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: ecourt_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ecourt_admin
+      POSTGRES_PASSWORD: ecourt_secure_pass_2026
+      POSTGRES_DB: ecourt_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../database/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - ecourt_net
+
+  # Redis Cache & Session Store
+  redis:
+    image: redis:7-alpine
+    container_name: ecourt_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - ecourt_net
+
+  # Python FastAPI AI & RAG Service
+  ai-service:
+    build:
+      context: ../ai-service
+      dockerfile: Dockerfile
+    container_name: ecourt_ai_service
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://ecourt_admin:ecourt_secure_pass_2026@postgres:5432/ecourt_db
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      - postgres
+    networks:
+      - ecourt_net
+
+  # Express Node.js Core Backend API Gateway
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: ecourt_backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      PORT: 5000
+      DATABASE_URL: postgresql://ecourt_admin:ecourt_secure_pass_2026@postgres:5432/ecourt_db
+      JWT_SECRET: ecourt_jwt_access_super_secret_key_2026_x99!
+      JWT_REFRESH_SECRET: ecourt_jwt_refresh_super_secret_key_2026_z100!
+      ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      AI_SERVICE_URL: http://ai-service:8000
+    depends_on:
+      - postgres
+      - redis
+      - ai-service
+    networks:
+      - ecourt_net
+
+  # Next.js 14 Web Frontend
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    container_name: ecourt_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5000/api/v1
+      NEXT_PUBLIC_AI_SERVICE_URL: http://localhost:8000/api/v1
+    depends_on:
+      - backend
+    networks:
+      - ecourt_net
+
+volumes:
+  postgres_data:
+
+networks:
+  ecourt_net:
+    driver: bridge

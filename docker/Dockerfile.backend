@@ -1,0 +1,20 @@
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY backend/package*.json ./backend/
+RUN cd backend && npm install
+
+COPY backend ./backend
+RUN cd backend && npm run build
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+COPY --from=builder /app/backend/package*.json ./
+COPY --from=builder /app/backend/dist ./dist
+RUN npm install --only=production
+
+EXPOSE 5000
+
+CMD ["node", "dist/index.js"]

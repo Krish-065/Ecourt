@@ -1,0 +1,142 @@
+[
+  {
+    "corpus_type": "CONSTITUTION",
+    "act_name": "Constitution of India",
+    "section_ref": "Preamble & Article 14",
+    "content": "Right to Equality: The State shall not deny to any person equality before the law or the equal protection of the laws within the territory of India.",
+    "metadata": { "statute": "Constitution", "year": 1950, "category": "Fundamental Rights" }
+  },
+  {
+    "corpus_type": "CONSTITUTION",
+    "act_name": "Constitution of India",
+    "section_ref": "Article 19(1)",
+    "content": "Protection of Certain Rights Regarding Freedom of Speech: All citizens shall have the right (a) to freedom of speech and expression; (b) to assemble peaceably; (c) to form associations or unions; (d) to move freely throughout India; (e) to reside and settle in any part of India; (g) to practise any profession, trade or business.",
+    "metadata": { "statute": "Constitution", "year": 1950, "category": "Fundamental Rights" }
+  },
+  {
+    "corpus_type": "CONSTITUTION",
+    "act_name": "Constitution of India",
+    "section_ref": "Article 21",
+    "content": "Protection of Life and Personal Liberty: No person shall be deprived of his life or personal liberty except according to procedure established by law. Encompasses right to privacy, speedy trial, clean environment, free legal aid, and dignity.",
+    "metadata": { "statute": "Constitution", "year": 1950, "category": "Fundamental Rights" }
+  },
+  {
+    "corpus_type": "CONSTITUTION",
+    "act_name": "Constitution of India",
+    "section_ref": "Article 32 & Article 226",
+    "content": "Constitutional Remedies and Writ Jurisdiction: Article 32 empowers the Supreme Court and Article 226 empowers High Courts to issue Writs of Habeas Corpus, Mandamus, Prohibition, Quo Warranto, and Certiorari for enforcement of fundamental & legal rights.",
+    "metadata": { "statute": "Constitution", "year": 1950, "category": "Writ Jurisdiction" }
+  },
+  {
+    "corpus_type": "CONSTITUTION",
+    "act_name": "Constitution of India",
+    "section_ref": "Article 39A",
+    "content": "Equal Justice and Free Legal Aid: The State shall secure that the operation of the legal system promotes justice on a basis of equal opportunity, and shall provide free legal aid by suitable legislation or schemes to ensure opportunities for securing justice are not denied to any citizen by reason of economic or other disabilities.",
+    "metadata": { "statute": "Constitution", "year": 1950, "category": "Directive Principles" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Bharatiya Nyaya Sanhita 2023",
+    "section_ref": "Section 103",
+    "content": "Punishment for Murder: Whoever commits murder shall be punished with death or imprisonment for life, and shall also be liable to fine. Where a group of five or more persons acting in concert commits murder on the ground of race, caste or community, sex, place of birth, language, personal belief or any other similar ground, each member of such group shall be punished with death or life imprisonment.",
+    "metadata": { "statute": "BNS", "year": 2023, "category": "Criminal Law" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Bharatiya Nyaya Sanhita 2023",
+    "section_ref": "Section 111",
+    "content": "Organized Crime: Any continuing unlawful activity including kidnapping, extortion, land grabbing, contract killing, economic offences, cyber-crimes committed by a syndicate or criminal group is punishable with life imprisonment or death if murder results.",
+    "metadata": { "statute": "BNS", "year": 2023, "category": "Organized Crime" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Bharatiya Nyaya Sanhita 2023",
+    "section_ref": "Section 318",
+    "content": "Cheating and Dishonestly Inducing Delivery of Property: Whoever cheats and thereby dishonestly induces the person deceived to deliver any property shall be punished with imprisonment up to seven years and fine.",
+    "metadata": { "statute": "BNS", "year": 2023, "category": "Financial & Property Crime" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Bharatiya Nyaya Sanhita 2023",
+    "section_ref": "Section 329",
+    "content": "Criminal Trespass and House-Trespass: Whoever enters into property in the possession of another with intent to commit an offence or intimidate, insult or annoy is guilty of criminal trespass, punishable with imprisonment up to seven years for house-trespass.",
+    "metadata": { "statute": "BNS", "year": 2023, "category": "Property Law" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Bharatiya Nyaya Sanhita 2023",
+    "section_ref": "Section 85 & Section 86",
+    "content": "Cruelty by Husband or Relatives of Husband: Husband or relative of husband subjecting a woman to cruelty (mental or physical harassment for dowry or demand) shall be punished with imprisonment up to three years and fine.",
+    "metadata": { "statute": "BNS", "year": 2023, "category": "Domestic & Gender Laws" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Bharatiya Nagarik Suraksha Sanhita 2023",
+    "section_ref": "Section 173",
+    "content": "Information in Cognizable Cases and Zero FIR: Mandates registration of FIR irrespective of territorial jurisdiction (Zero FIR). Allows submission of electronic information (e-FIR) provided it is signed within three days.",
+    "metadata": { "statute": "BNSS", "year": 2023, "category": "Criminal Procedure" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Bharatiya Nagarik Suraksha Sanhita 2023",
+    "section_ref": "Section 480",
+    "content": "Bail Provisions for Non-Bailable Offences: Governs conditions for release on bail for non-bailable offences, mandatory bail considerations for first-time offenders who have served one-third of maximum sentence.",
+    "metadata": { "statute": "BNSS", "year": 2023, "category": "Bail & Criminal Liberty" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Bharatiya Sakshya Adhiniyam 2023",
+    "section_ref": "Section 61 & Section 62",
+    "content": "Admissibility of Electronic Records: Electronic or digital records (emails, server logs, WhatsApp chats, CCTV) carry equal evidential weight as physical documents when accompanied by a Section 63 certificate validating device integrity.",
+    "metadata": { "statute": "BSA", "year": 2023, "category": "Digital Evidence" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Consumer Protection Act 2019",
+    "section_ref": "Section 2(7) & Section 35",
+    "content": "Consumer Rights and Filing Complaints: A consumer buying goods/services offline or online can file complaints before the District Consumer Disputes Redressal Commission for unfair trade practices, defective goods, or deficiency in service. E-filing enabled via edaakhil.",
+    "metadata": { "statute": "Consumer Law", "year": 2019, "category": "Consumer Protection" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Protection of Women from Domestic Violence Act 2005",
+    "section_ref": "Section 12, 18 & 19",
+    "content": "Magistrate Reliefs for Domestic Violence: Aggrieved women in a domestic relationship can seek Protection Orders (Sec 18), Residence Orders preventing eviction (Sec 19), Monetary Reliefs for medical & maintenance costs (Sec 20), and temporary child custody.",
+    "metadata": { "statute": "DV Act", "year": 2005, "category": "Domestic Law" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Negotiable Instruments Act 1881",
+    "section_ref": "Section 138",
+    "content": "Dishonour of Cheque for Insufficiency of Funds: Dishonour of cheque is a criminal offence punishable with imprisonment up to two years or fine up to twice the cheque amount. Mandates serving a legal notice within 30 days of dishonour and 15 days cure period before court complaint.",
+    "metadata": { "statute": "NI Act", "year": 1881, "category": "Economic & Cheque Bounce" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Prevention of Money Laundering Act 2002",
+    "section_ref": "Section 3 & Section 4",
+    "content": "Offence of Money Laundering: Whosoever directly or indirectly attempts to indulge, assist, or is party to process or activity connected with proceeds of crime is guilty of money laundering, punishable with rigorous imprisonment up to 7 years (10 years under NDPS offences) and fine.",
+    "metadata": { "statute": "PMLA", "year": 2002, "category": "Financial & Economic Crime" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Information Technology Act 2000",
+    "section_ref": "Section 66C & Section 66D",
+    "content": "Identity Theft and Cyber Impersonation: Fraudulent or dishonest use of electronic signature, password, or unique identification feature is punishable with imprisonment up to 3 years and fine up to 1 lakh rupees.",
+    "metadata": { "statute": "IT Act", "year": 2000, "category": "Cyber Law" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Real Estate (Regulation and Development) Act 2016",
+    "section_ref": "Section 18",
+    "content": "Return of Amount and Compensation for Delay: If a promoter fails to complete or give possession of an apartment/plot by the date specified in the agreement, homebuyer can demand full refund with interest at prescribed rate or interest for every month of delay.",
+    "metadata": { "statute": "RERA", "year": 2016, "category": "Property & Real Estate" }
+  },
+  {
+    "corpus_type": "BARE_ACT",
+    "act_name": "Representation of the People Act 1951",
+    "section_ref": "Section 8 & Section 123",
+    "content": "Disqualification of Political Candidates and Corrupt Electoral Practices: Disqualifies convicted persons sentenced to 2+ years imprisonment from contesting elections for 6 years post-release. Prohibits bribery, undue influence, and appeal to religion or caste.",
+    "metadata": { "statute": "RPA", "year": 1951, "category": "Political & Election Law" }
+  }
+]
