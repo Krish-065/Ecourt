@@ -11,8 +11,8 @@ export default function GetStartedRedirect() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500 font-bold text-xs">
-      Redirecting to Legal OS...
+    <div className="min-h-screen flex items-center justify-center bg-ivory text-muted font-sans text-xs">
+      Entering Chamber...
     </div>
   );
 }

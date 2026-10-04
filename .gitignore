@@ -3,15 +3,15 @@ node_modules/
 jspm_packages/
 web_modules/
 
-# Build outputs
-dist/
-build/
+# Next.js & Frontend Build Outputs
 .next/
 out/
-.nuxt/
-.svelte-kit/
+build/
+dist/
+*.tsbuildinfo
+.open-next/
 
-# Environment files
+# Environment files & Secrets
 .env
 .env.local
 .env.development.local
@@ -19,8 +19,10 @@ out/
 .env.production.local
 *.env
 *.env.*
+*.pem
+*.key
 
-# Python
+# Python & AI Microservice
 __pycache__/
 *.py[cod]
 *$py.class
@@ -28,6 +30,22 @@ __pycache__/
 venv/
 env/
 .pytest_cache/
+.ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
+huggingface/
+.cache/
+models/
+
+# Database, Runtime & Vault Storage
+storage/*
+!storage/.gitkeep
+database/data/
+pgdata/
+redis/data/
+*.sqlite
+*.sqlite3
 
 # IDE / Editor configuration
 .vscode/
@@ -37,10 +55,12 @@ env/
 *.njsproj
 *.sln
 *.swp
+*.swo
 
 # OS files
 .DS_Store
 Thumbs.db
+ehthumbs.db
 
 # Logs
 logs/
@@ -49,7 +69,3 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-
-# Local Database / Storage
-storage/*
-!storage/.gitkeep
