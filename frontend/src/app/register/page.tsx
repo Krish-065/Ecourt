@@ -18,8 +18,10 @@ import {
   AlertCircle,
   ArrowRight,
   RefreshCw,
+  Scale
 } from 'lucide-react';
 import { registerUser, scanAdvocateIDCard } from '../../lib/api';
+import Logo from '../../components/Logo';
 
 function RegisterFormContent() {
   const searchParams = useSearchParams();
@@ -80,10 +82,10 @@ function RegisterFormContent() {
       }
       setStatusMsg({
         type: 'success',
-        text: '✅ Advocate ID Card scanned and verified against State Bar Council Registry!',
+        text: 'Advocate ID Card scanned and verified against State Bar Council Registry!',
       });
     } else {
-      setStatusMsg({ type: 'error', text: 'ID Card scanning failed. Please check document clarity.' });
+      setStatusMsg({ type: 'error', text: 'ID Card scanning failed. Please verify document legibility.' });
     }
   };
 
@@ -110,7 +112,7 @@ function RegisterFormContent() {
     if (res.success) {
       setStatusMsg({
         type: 'success',
-        text: `🎉 Account created successfully as ${role}! Redirecting to dashboard...`,
+        text: `Account created successfully as ${role.replace('_', ' ')}! Initializing chambers...`,
       });
       setTimeout(() => {
         window.location.href = '/dashboard';
@@ -120,138 +122,115 @@ function RegisterFormContent() {
     }
   };
 
+  const roles = [
+    { id: 'ADVOCATE', label: 'Advocate', icon: Gavel },
+    { id: 'CITIZEN', label: 'Citizen', icon: Users },
+    { id: 'LAW_STUDENT', label: 'Law Student', icon: GraduationCap },
+    { id: 'BUSINESS', label: 'Corporate', icon: Building2 },
+  ] as const;
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6 py-4">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <div className="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center justify-center mx-auto shadow-sm">
-          <UserCheck className="h-6 w-6" />
-        </div>
-        <h1 className="text-2xl font-extrabold text-slate-900">Create ECourt Account & Verify Credentials</h1>
-        <p className="text-xs text-slate-600">
-          Join India's AI Legal OS for Citizens, Advocates, Law Students & Businesses
+    <div className="max-w-2xl mx-auto space-y-6 py-6 px-4">
+      {/* Header with Logo */}
+      <div className="flex flex-col items-center text-center space-y-2">
+        <Logo variant="light" size="lg" />
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight pt-2">
+          Chamber Enrollment & Credentials
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 max-w-sm">
+          Register your account on the Indian National eCourts AI Grid
         </p>
       </div>
 
-      {/* Role Picker */}
+      {/* Role Picker — Unified style across all roles */}
       <div className="space-y-2">
-        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Select Account Type</label>
+        <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-500 block text-center">
+          Enrollment Type
+        </label>
         <div className="grid grid-cols-4 gap-2 text-center">
-          <button
-            type="button"
-            onClick={() => setRole('ADVOCATE')}
-            className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center gap-1.5 transition ${
-              role === 'ADVOCATE'
-                ? 'bg-indigo-600 border-indigo-700 text-white shadow-md shadow-indigo-600/20'
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            <Gavel className="h-4 w-4" />
-            <span className="text-[11px]">Advocate</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setRole('CITIZEN')}
-            className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center gap-1.5 transition ${
-              role === 'CITIZEN'
-                ? 'bg-indigo-600 border-indigo-700 text-white shadow-md shadow-indigo-600/20'
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            <Users className="h-4 w-4" />
-            <span className="text-[11px]">Citizen / Consumer</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setRole('LAW_STUDENT')}
-            className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center gap-1.5 transition ${
-              role === 'LAW_STUDENT'
-                ? 'bg-indigo-600 border-indigo-700 text-white shadow-md shadow-indigo-600/20'
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            <GraduationCap className="h-4 w-4" />
-            <span className="text-[11px]">Law Student</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setRole('BUSINESS')}
-            className={`p-3 rounded-2xl border text-xs font-bold flex flex-col items-center gap-1.5 transition ${
-              role === 'BUSINESS'
-                ? 'bg-indigo-600 border-indigo-700 text-white shadow-md shadow-indigo-600/20'
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            <Building2 className="h-4 w-4" />
-            <span className="text-[11px]">Business</span>
-          </button>
+          {roles.map((r) => {
+            const Icon = r.icon;
+            const isSelected = role === r.id;
+            return (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => setRole(r.id)}
+                className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center gap-1.5 transition-all duration-150 cursor-pointer ${
+                  isSelected
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm ring-2 ring-blue-500/20'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+              >
+                <Icon className={`h-4 w-4 ${isSelected ? 'text-white' : 'text-slate-500'}`} />
+                <span className="text-[11px]">{r.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Main Registration Form */}
-      <form onSubmit={handleRegister} className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5 text-xs">
+      <form onSubmit={handleRegister} className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5 text-xs">
         {statusMsg && (
           <div
-            className={`p-3.5 rounded-2xl border text-xs font-bold flex items-center gap-2 ${
+            className={`p-3.5 rounded-xl border text-xs font-semibold flex items-center gap-2 ${
               statusMsg.type === 'success'
                 ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                 : 'bg-rose-50 border-rose-200 text-rose-800'
             }`}
           >
-            {statusMsg.type === 'success' ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <AlertCircle className="h-4 w-4 text-rose-600" />}
+            {statusMsg.type === 'success' ? <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" /> : <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />}
             <span>{statusMsg.text}</span>
           </div>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-slate-700 font-bold">Full Name</label>
+          <div className="space-y-1.5">
+            <label className="text-slate-700 font-semibold">Full Name</label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="e.g. Adv. Rajesh Sharma"
-              className="w-full glass-input px-3.5 py-2.5 rounded-xl focus:outline-none"
+              className="w-full bg-slate-50 border border-slate-200 px-3.5 py-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition text-xs"
               required
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-slate-700 font-bold">Email Address</label>
+          <div className="space-y-1.5">
+            <label className="text-slate-700 font-semibold">Email Address</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. advocate@ecourt.in"
-              className="w-full glass-input px-3.5 py-2.5 rounded-xl focus:outline-none"
+              className="w-full bg-slate-50 border border-slate-200 px-3.5 py-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition text-xs"
               required
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-slate-700 font-bold">Phone Number</label>
+          <div className="space-y-1.5">
+            <label className="text-slate-700 font-semibold">Phone Number</label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+91 98765 43210"
-              className="w-full glass-input px-3.5 py-2.5 rounded-xl focus:outline-none"
+              className="w-full bg-slate-50 border border-slate-200 px-3.5 py-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition text-xs"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-slate-700 font-bold">Password</label>
+          <div className="space-y-1.5">
+            <label className="text-slate-700 font-semibold">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
-              className="w-full glass-input px-3.5 py-2.5 rounded-xl focus:outline-none"
+              className="w-full bg-slate-50 border border-slate-200 px-3.5 py-2.5 rounded-xl text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition text-xs"
               required
             />
           </div>
@@ -259,23 +238,23 @@ function RegisterFormContent() {
 
         {/* Advocate Specific Document Upload & OCR Scan Section */}
         {role === 'ADVOCATE' && (
-          <div className="p-5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-amber-900 text-sm flex items-center gap-1.5">
-                <Gavel className="h-4 w-4 text-amber-700" />
-                Advocate Verification & Bar ID Proof Upload
+          <div className="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+              <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <Gavel className="h-4 w-4 text-blue-600" />
+                Advocate Verification & Bar ID Proof
               </h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300">
-                REQUIRED FOR ADVOCATES
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                Statutory Verification
               </span>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-slate-700 font-bold">State Bar Council</label>
+            <div className="space-y-1.5">
+              <label className="text-slate-700 font-semibold">State Bar Council</label>
               <select
                 value={stateBarCouncil}
                 onChange={(e) => setStateBarCouncil(e.target.value)}
-                className="w-full glass-input px-3 py-2 rounded-xl bg-white font-medium text-slate-800"
+                className="w-full bg-white border border-slate-200 px-3 py-2 rounded-lg font-medium text-slate-900 text-xs focus:outline-none focus:border-blue-600"
               >
                 <option>Bar Council of Maharashtra & Goa</option>
                 <option>Bar Council of Delhi</option>
@@ -283,25 +262,26 @@ function RegisterFormContent() {
                 <option>Bar Council of Karnataka</option>
                 <option>Bar Council of West Bengal</option>
                 <option>Bar Council of Uttar Pradesh</option>
+                <option>Bar Council of Gujarat</option>
               </select>
             </div>
 
             {/* Document Upload Box */}
             <div className="space-y-2">
-              <label className="text-slate-700 font-bold">Upload Advocate ID Card / Sanad Certificate (PNG, JPG, PDF)</label>
-              <div className="border-2 border-dashed border-amber-300 bg-white p-4 rounded-2xl text-center space-y-2 hover:border-amber-500 transition">
-                <UploadCloud className="h-8 w-8 text-amber-600 mx-auto" />
+              <label className="text-slate-700 font-semibold">Upload Advocate ID Card / Sanad Certificate (PNG, JPG, PDF)</label>
+              <div className="border-2 border-dashed border-slate-300 bg-white p-5 rounded-xl text-center space-y-2 hover:border-blue-500 transition">
+                <UploadCloud className="h-7 w-7 text-blue-600 mx-auto" />
                 {fileName ? (
-                  <p className="text-xs font-bold text-slate-800 flex items-center justify-center gap-1">
+                  <p className="text-xs font-semibold text-slate-900 flex items-center justify-center gap-1.5">
                     <FileCheck className="h-4 w-4 text-emerald-600" /> {fileName}
                   </p>
                 ) : (
-                  <p className="text-xs text-slate-500">Drag & drop your Advocate ID Card / Sanad Certificate file or browse</p>
+                  <p className="text-xs text-slate-500">Upload Bar Council Sanad or Advocate ID for verification</p>
                 )}
                 <input type="file" onChange={handleFileChange} className="hidden" id="advocate-id-input" accept="image/*,.pdf" />
                 <label
                   htmlFor="advocate-id-input"
-                  className="inline-block px-3.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs cursor-pointer transition"
+                  className="inline-block px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs cursor-pointer border border-slate-200 transition"
                 >
                   Browse File
                 </label>
@@ -313,30 +293,30 @@ function RegisterFormContent() {
               type="button"
               onClick={handleScanIDCard}
               disabled={scanning}
-              className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold flex items-center justify-center gap-2 shadow-sm transition"
+              className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
             >
               {scanning ? (
                 <>
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  <span>Scanning Advocate ID Card via OCR...</span>
+                  <RefreshCw className="h-4 w-4 animate-spin text-white" />
+                  <span>Scanning Document via OCR...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-4 w-4 text-amber-200" />
-                  <span>Scan Advocate ID & Verify Bar Registry</span>
+                  <Sparkles className="h-4 w-4 text-blue-200" />
+                  <span>Verify with State Bar Council Registry</span>
                 </>
               )}
             </button>
 
             {/* OCR Extracted Result Badge */}
             {scanResult && (
-              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2 text-xs text-emerald-900">
+              <div className="p-4 rounded-xl bg-white border border-emerald-300 space-y-2 text-xs text-slate-900 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold flex items-center gap-1.5 text-emerald-800">
+                  <span className="font-semibold flex items-center gap-1.5 text-emerald-800">
                     <ShieldCheck className="h-4 w-4 text-emerald-600" /> Verified Advocate Credentials
                   </span>
-                  <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">
-                    Score: {scanResult.confidenceScore}%
+                  <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
+                    Match Confidence: {scanResult.confidenceScore}%
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
@@ -349,7 +329,7 @@ function RegisterFormContent() {
                     <p className="font-bold text-slate-900">{scanResult.extractedData.stateBarCouncil}</p>
                   </div>
                   <div>
-                    <span className="text-slate-500">Status:</span>
+                    <span className="text-slate-500">Verification Status:</span>
                     <p className="font-bold text-emerald-700">{scanResult.extractedData.status}</p>
                   </div>
                   <div>
@@ -363,32 +343,32 @@ function RegisterFormContent() {
         )}
 
         {role === 'LAW_STUDENT' && (
-          <div className="space-y-1 p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
-            <label className="text-emerald-900 font-bold flex items-center gap-1">
-              <GraduationCap className="h-4 w-4 text-emerald-600" /> Law School Roll Number / College ID
+          <div className="space-y-1.5 p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <label className="text-slate-900 font-semibold flex items-center gap-1.5">
+              <GraduationCap className="h-4 w-4 text-blue-600" /> Law School Roll Number / College ID
             </label>
             <input
               type="text"
               value={collegeId}
               onChange={(e) => setCollegeId(e.target.value)}
               placeholder="e.g. NLSIU-2024-089"
-              className="w-full glass-input px-3.5 py-2.5 rounded-xl font-mono text-slate-800"
+              className="w-full bg-white border border-slate-200 px-3.5 py-2 rounded-lg font-mono text-slate-900 text-xs focus:outline-none focus:border-blue-600"
               required
             />
           </div>
         )}
 
         {role === 'BUSINESS' && (
-          <div className="space-y-1 p-4 rounded-2xl bg-sky-50 border border-sky-200">
-            <label className="text-sky-900 font-bold flex items-center gap-1">
-              <Building2 className="h-4 w-4 text-sky-600" /> Corporate Registration (CIN / GSTIN)
+          <div className="space-y-1.5 p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <label className="text-slate-900 font-semibold flex items-center gap-1.5">
+              <Building2 className="h-4 w-4 text-blue-600" /> Corporate Registration (CIN / GSTIN)
             </label>
             <input
               type="text"
               value={companyReg}
               onChange={(e) => setCompanyReg(e.target.value)}
               placeholder="e.g. CIN U72200MH2021PTC123456"
-              className="w-full glass-input px-3.5 py-2.5 rounded-xl font-mono text-slate-800"
+              className="w-full bg-white border border-slate-200 px-3.5 py-2 rounded-lg font-mono text-slate-900 text-xs focus:outline-none focus:border-blue-600"
               required
             />
           </div>
@@ -397,22 +377,22 @@ function RegisterFormContent() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2 transition"
+          className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm flex items-center justify-center gap-2 transition cursor-pointer mt-2"
         >
           {loading ? (
-            <span>Creating Account...</span>
+            <span>Enrolling Chamber...</span>
           ) : (
             <>
-              <span>Complete Registration & Access ECourt</span>
-              <ArrowRight className="h-4 w-4" />
+              <span>Complete Enrollment & Enter Chambers</span>
+              <ArrowRight className="h-4 w-4 text-white" />
             </>
           )}
         </button>
 
-        <p className="text-center text-slate-500 pt-2">
-          Already have an account?{' '}
-          <Link href="/auth" className="text-indigo-600 font-bold hover:underline">
-            Sign In here
+        <p className="text-center text-slate-500 pt-2 text-xs">
+          Already registered on the platform?{' '}
+          <Link href="/auth" className="text-blue-600 hover:text-blue-800 font-semibold">
+            Member Sign In
           </Link>
         </p>
       </form>
@@ -422,7 +402,7 @@ function RegisterFormContent() {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div className="text-center p-8 text-slate-500 font-bold">Loading Registration...</div>}>
+    <Suspense fallback={<div className="text-center p-8 text-slate-500 font-medium">Loading Registration...</div>}>
       <RegisterFormContent />
     </Suspense>
   );

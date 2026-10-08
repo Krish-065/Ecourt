@@ -1,13 +1,33 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Scale, ShieldCheck, Bell, Sparkles, Search, ChevronDown, UserPlus, LogIn, Rocket, LogOut, Gavel } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Search, ChevronDown, LogIn, LogOut, User } from 'lucide-react';
+import Logo from './Logo';
 import { UserProfile } from '../lib/api';
 
+const roleLabels: Record<string, string> = {
+  CITIZEN: 'Citizen',
+  ADVOCATE: 'Advocate',
+  LAW_STUDENT: 'Law Student',
+  BUSINESS: 'Corporate',
+  ADMIN: 'Administrator',
+};
+
+const roleColors: Record<string, string> = {
+  CITIZEN: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  ADVOCATE: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+  LAW_STUDENT: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+  BUSINESS: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
+  ADMIN: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+};
+
 export default function Navbar() {
+  const pathname = usePathname();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('ecourt_user');
@@ -16,110 +36,94 @@ export default function Navbar() {
         setUser(JSON.parse(saved));
       } catch (e) {}
     }
+  }, [pathname]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('ecourt_user');
+    localStorage.removeItem('ecourt_token');
     setUser(null);
     window.location.href = '/';
   };
 
-  const getRoleBadgeColor = (role?: string) => {
-    switch (role) {
-      case 'ADMIN': return 'bg-rose-50 text-rose-700 border-rose-200';
-      case 'ADVOCATE': return 'bg-amber-50 text-amber-800 border-amber-300';
-      case 'LAW_STUDENT': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'BUSINESS': return 'bg-sky-50 text-sky-700 border-sky-200';
-      default: return 'bg-indigo-50 text-indigo-700 border-indigo-200';
-    }
-  };
+  const displayName = user ? (user.fullName || (user as any).full_name || 'User') : '';
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200 px-6 py-3 flex items-center justify-between shadow-sm">
+    <header className="sticky top-0 z-50 bg-slate-900 border-b border-slate-800 text-white px-5 py-3 flex items-center justify-between shadow-md">
       {/* Brand Logo */}
+      <Link href="/" className="hover:opacity-95 transition-opacity">
+        <Logo variant="dark" size="md" />
+      </Link>
+
+      {/* Center search — only when logged in */}
+      {user && (
+        <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/80 w-80 text-xs text-slate-300 focus-within:border-blue-500 transition shadow-inner">
+          <Search className="h-4 w-4 text-slate-400 shrink-0" />
+          <input
+            type="text"
+            placeholder="Search statutes, cases, bare acts..."
+            className="bg-transparent text-white placeholder-slate-400 focus:outline-none w-full text-xs"
+          />
+          <kbd className="hidden lg:inline-block px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-700/60 rounded border border-slate-600">
+            /
+          </kbd>
+        </div>
+      )}
+
+      {/* Right actions */}
       <div className="flex items-center gap-3">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-sky-500 flex items-center justify-center shadow-md shadow-indigo-600/20 group-hover:scale-105 transition-transform">
-            <Scale className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <span className="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
-              ECourt <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold">AI Legal OS</span>
-            </span>
-            <p className="text-[10px] text-slate-500 font-medium">Jurisdiction: Supreme Court & All High Courts of India</p>
-          </div>
-        </Link>
-      </div>
-
-      {/* Quick Search */}
-      <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 border border-slate-200 w-72 text-xs text-slate-500 focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition">
-        <Search className="h-4 w-4 text-slate-400" />
-        <input 
-          type="text" 
-          placeholder="Search Indian Constitution, BNS, BNSS, Consumer Act, eCourts..." 
-          className="bg-transparent text-slate-900 placeholder-slate-400 focus:outline-none w-full text-xs"
-        />
-        <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 bg-white rounded border border-slate-200 shadow-2xs">⌘K</kbd>
-      </div>
-
-      {/* User Actions & Role Navigation */}
-      <div className="flex items-center gap-2.5">
-        {user && (
-          <>
-            <Link href="/advocates" className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-bold transition">
-              <Gavel className="h-3.5 w-3.5 text-indigo-600 animate-pulse" />
-              <span>Find Advocate</span>
-            </Link>
-
-            <Link href="/ai-chat" className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 hover:bg-indigo-700 transition">
-              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-              <span>Aura AI</span>
-            </Link>
-          </>
-        )}
-
         {user ? (
-          /* Role Profile Badge & Dropdown */
-          <div className="relative">
-            <button 
+          <div className="relative" ref={dropdownRef}>
+            <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2.5 p-1 rounded-xl bg-slate-50 border border-slate-200 hover:border-indigo-400 transition shadow-2xs focus:outline-none"
+              className="flex items-center gap-2.5 p-1.5 pr-3 rounded-xl hover:bg-slate-800 transition border border-transparent hover:border-slate-700"
             >
-              <div className="h-8 w-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
-                {(user.fullName || user.full_name || 'User').charAt(0)}
+              <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-xs text-white shadow-sm">
+                {displayName ? displayName[0].toUpperCase() : 'U'}
               </div>
-              <div className="hidden md:block text-left pr-1">
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-bold text-slate-900">{user.fullName || user.full_name || 'User'}</span>
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                </div>
-                <span className={`text-[9px] px-1.5 py-0.2 rounded border font-bold inline-block ${getRoleBadgeColor(user.role)}`}>
-                  {user.role}
+              <div className="hidden sm:block text-left">
+                <p className="text-xs font-semibold text-white leading-tight">{displayName}</p>
+                <span className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-medium border ${roleColors[user.role || 'CITIZEN']}`}>
+                  {roleLabels[user.role || 'CITIZEN'] || 'Member'}
                 </span>
               </div>
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400 pr-1" />
+              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
             </button>
 
+            {/* Dropdown menu */}
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 text-xs font-bold text-slate-700 animate-in fade-in-50 slide-in-from-top-2 duration-150">
-                <Link 
-                  href="/dashboard" 
+              <div className="absolute right-0 mt-2 w-56 bg-slate-900 rounded-xl border border-slate-700 shadow-xl py-1.5 z-50 text-xs">
+                <div className="px-4 py-2 border-b border-slate-800">
+                  <p className="text-xs font-bold text-white">{displayName}</p>
+                  <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
+                  <span className={`inline-block mt-1.5 px-2 py-0.5 rounded text-[10px] font-semibold border ${roleColors[user.role || 'CITIZEN']}`}>
+                    {roleLabels[user.role || 'CITIZEN']} Profile
+                  </span>
+                </div>
+
+                <Link
+                  href="/dashboard"
                   onClick={() => setDropdownOpen(false)}
-                  className="block px-4 py-2 hover:bg-slate-100 transition"
+                  className="flex items-center gap-2 px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-800 transition"
                 >
-                  My Dashboard
+                  <User className="h-3.5 w-3.5 text-blue-400" />
+                  <span>Chamber Dashboard</span>
                 </Link>
-                <Link 
-                  href="/vault" 
-                  onClick={() => setDropdownOpen(false)}
-                  className="block px-4 py-2 hover:bg-slate-100 transition"
-                >
-                  Document Vault
-                </Link>
-                <div className="h-px bg-slate-100 my-1"></div>
-                <button 
-                  onClick={() => { setDropdownOpen(false); handleLogout(); }}
-                  className="w-full text-left px-4 py-2 text-rose-600 hover:bg-rose-50 transition flex items-center gap-2"
+
+                <div className="border-t border-slate-800 my-1" />
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 px-4 py-2 text-rose-400 hover:bg-rose-500/10 transition text-left"
                 >
                   <LogOut className="h-3.5 w-3.5" />
                   <span>Sign Out</span>
@@ -128,21 +132,18 @@ export default function Navbar() {
             )}
           </div>
         ) : (
-          /* Sign In CTA if not logged in */
           <div className="flex items-center gap-2">
-            <Link 
-              href="/auth" 
-              className="px-3.5 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition flex items-center gap-1.5"
+            <Link
+              href="/auth"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 border border-slate-700 transition"
             >
-              <LogIn className="h-3.5 w-3.5 text-indigo-600" />
-              <span>Sign In</span>
+              Sign In
             </Link>
-            <Link 
-              href="/register" 
-              className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+            <Link
+              href="/register"
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition shadow-sm"
             >
-              <UserPlus className="h-3.5 w-3.5 text-indigo-200" />
-              <span>Register</span>
+              Get Started
             </Link>
           </div>
         )}
