@@ -507,7 +507,7 @@ function RegisterFormContent() {
           }`}
         >
           {loading ? (
-            <span>Creating Account...</span>
+            <span>Enrolling Chamber...</span>
           ) : (
             <>
               <span>Register</span>

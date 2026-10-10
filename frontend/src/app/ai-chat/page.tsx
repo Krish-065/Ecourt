@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { queryAIAgent } from '../../lib/api';
+import AgentCard from '../../components/AgentCard';
 import { 
   Sparkles, 
   Send, 
@@ -34,6 +35,7 @@ export default function AIChatWorkspace() {
   const [currentSession, setCurrentSession] = useState<any>(null);
   const [userQuery, setUserQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showAgentPicker, setShowAgentPicker] = useState(false);
   const [messages, setMessages] = useState<Array<{
     sender: 'USER' | 'ASSISTANT';
     text: string;

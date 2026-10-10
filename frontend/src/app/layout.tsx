@@ -19,6 +19,20 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ['400', '500', '600'],
 });
 
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-jakarta',
+  display: 'swap',
+  weight: ['400', '500', '600', '700', '800'],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+  weight: ['400', '500', '600'],
+});
+
 export const metadata: Metadata = {
   title: 'eCourt — National AI Legal Operating System',
   description: 'AI-powered legal intelligence platform for India. Statutory RAG search, live eCourts CNR docket sync, and encrypted chambers for Citizens, Advocates, Law Students, and Corporate Counsel.',
