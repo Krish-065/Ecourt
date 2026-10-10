@@ -1,11 +1,27 @@
 import type { Metadata } from 'next';
+import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
+import MainContainer from '../components/MainContainer';
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-jakarta',
+  display: 'swap',
+  weight: ['400', '500', '600', '700', '800'],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains-mono',
+  display: 'swap',
+  weight: ['400', '500', '600'],
+});
 
 export const metadata: Metadata = {
-  title: 'ECourt - AI Legal Operating System for India ⚖️🇮🇳',
-  description: 'Production-ready AI Legal OS for Indian Jurisdiction: Indian Constitution, Bare Acts (BNS, BNSS, BSA, CPC, Consumer Act, Domestic Violence, PMLA), Autonomous AI Counsel, eCourts Case Lookup, Advocate Verification & Vault Encryption.',
+  title: 'eCourt — National AI Legal Operating System',
+  description: 'AI-powered legal intelligence platform for India. Statutory RAG search, live eCourts CNR docket sync, and encrypted chambers for Citizens, Advocates, Law Students, and Corporate Counsel.',
 };
 
 export default function RootLayout({
@@ -14,14 +30,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="bg-slate-50 text-slate-900 antialiased font-sans flex flex-col min-h-screen">
+    <html lang="en" className={`${jakarta.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var theme = localStorage.getItem('theme');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
+      <body className="flex flex-col h-screen overflow-hidden bg-slate-50 dark:bg-[#070b14] text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-blue-600 selection:text-white">
         <Navbar />
-        <div className="flex flex-1 min-h-[calc(100vh-65px)]">
+        <div className="flex flex-1 overflow-hidden min-h-0">
           <Sidebar />
-          <main className="flex-1 p-4 md:p-6 overflow-y-auto max-w-7xl mx-auto w-full">
+          <MainContainer>
             {children}
-          </main>
+          </MainContainer>
         </div>
       </body>
     </html>

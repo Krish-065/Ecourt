@@ -14,7 +14,7 @@ class CitationItem(BaseModel):
 class AgentQueryResponse(BaseModel):
     response: str
     citations: List[CitationItem]
-    confidence_score: float
+    confidence_score: Optional[float] = None
     grounded: bool
     agent_name: str
     agent_type: str

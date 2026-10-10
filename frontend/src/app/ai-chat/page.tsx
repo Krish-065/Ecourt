@@ -22,7 +22,8 @@ import {
   Building2,
   Lock,
   ChevronRight,
-  Info
+  Info,
+  ExternalLink
 } from 'lucide-react';
 
 export default function AIChatWorkspace() {
@@ -43,11 +44,11 @@ export default function AIChatWorkspace() {
   }>>([]);
 
   const agentList = [
-    { id: 'CITIZEN_ADVISOR', name: 'Citizen Advisor Agent', roleDescription: 'Explains rights & BNSS FIR rules in plain language', iconName: 'UserCheck' },
-    { id: 'ADVOCATE_ASSISTANT', name: 'Advocate Assistant Agent', roleDescription: 'Drafts petitions, bail pleas & cross-exam strategies', iconName: 'Gavel' },
-    { id: 'LAW_STUDENT_TUTOR', name: 'Law Student Tutor Agent', roleDescription: 'Socratic teaching of Indian Constitutional ratio decidendi', iconName: 'GraduationCap' },
-    { id: 'BUSINESS_COMPLIANCE', name: 'Business Advisor Agent', roleDescription: 'Companies Act, GST statutory compliance & contract risks', iconName: 'Building2' },
-    { id: 'CASE_STRATEGY_PLANNER', name: 'Strategy Planner Agent', roleDescription: 'Litigation risk modeling & defense precedent mapping', iconName: 'Target' },
+    { id: 'CITIZEN_ADVISOR', name: 'Citizen Legal Advisor', roleDescription: 'Explains civil rights, police powers & BNSS procedures in plain speak', iconName: 'UserCheck' },
+    { id: 'ADVOCATE_ASSISTANT', name: 'Advocate Co-Counsel', roleDescription: 'Drafts writ petitions, bail applications & cross-examination strategies', iconName: 'Gavel' },
+    { id: 'LAW_STUDENT_TUTOR', name: 'Jurisprudence & Precedent Tutor', roleDescription: 'Constitutional assembly debates, ratio decidendi & landmark precedent analysis', iconName: 'GraduationCap' },
+    { id: 'BUSINESS_COMPLIANCE', name: 'Corporate Compliance Counsel', roleDescription: 'Companies Act, GST statutory liabilities & contract risk assessment', iconName: 'Building2' },
+    { id: 'CASE_STRATEGY_PLANNER', name: 'Litigation Strategy Planner', roleDescription: 'Procedural risk analysis, jurisdictional objections & appellate roadmap', iconName: 'Target' },
   ];
 
   useEffect(() => {
@@ -59,7 +60,6 @@ export default function AIChatWorkspace() {
         setUser(parsedUser);
         setToken(savedToken);
 
-        // Automatically set the specialized legal agent based on the logged-in user's role
         if (parsedUser.role === 'CITIZEN') {
           setSelectedAgent('CITIZEN_ADVISOR');
         } else if (parsedUser.role === 'ADVOCATE') {
@@ -69,7 +69,7 @@ export default function AIChatWorkspace() {
         } else if (parsedUser.role === 'BUSINESS') {
           setSelectedAgent('BUSINESS_COMPLIANCE');
         } else {
-          setSelectedAgent('CASE_STRATEGY_PLANNER'); // Default / Admin
+          setSelectedAgent('CASE_STRATEGY_PLANNER');
         }
       } catch (e) {}
     }
@@ -117,17 +117,16 @@ export default function AIChatWorkspace() {
           citations: typeof m.citations === 'string' ? JSON.parse(m.citations) : m.citations,
           confidence: m.confidence_score ? parseFloat(m.confidence_score) : undefined,
           agentName: currentAgentInfo.name,
-          provider: 'Supercore AI'
+          provider: 'eCourt Judicial Engine'
         })));
       } else {
         setMessages([
           {
             sender: 'ASSISTANT',
-            text: `Welcome to your practice room. I am initialized as your specialized **${currentAgentInfo.name}**. I am grounded in the Constitution of India, BNS 2023, BNSS 2023, BSA 2023, CPC, and landmark Supreme Court jurisprudence.\n\nAsk me any complex legal query or talk naturally with me to get statutory guidance and action steps.`,
+            text: `Welcome to your digital chambers. I am initialized as your specialized **${currentAgentInfo.name}**.\n\nMy reasoning is grounded directly in the Constitution of India, Bharatiya Nyaya Sanhita (BNS 2023), Bharatiya Nagarik Suraksha Sanhita (BNSS 2023), Bharatiya Sakshya Adhiniyam (BSA 2023), CPC, and Supreme Court precedent.\n\nEnter your query or case facts below to receive statutory analysis and actionable legal guidance.`,
             citations: [],
-            confidence: 98.0,
             agentName: currentAgentInfo.name,
-            provider: 'Supercore AI'
+            provider: 'eCourt Judicial Engine'
           }
         ]);
       }
@@ -162,9 +161,9 @@ export default function AIChatWorkspace() {
     } catch (err) {}
 
     const res = await queryAIAgent(selectedAgent, queryText);
-    const assistantText = res.response || res.detail || 'Unable to compute RAG response.';
-    const confidenceScore = res.confidence_score || 94.0;
+    const assistantText = res.response || res.detail || 'Unable to compute statutory RAG response.';
     const citations = res.citations || [];
+    const confidenceScore = (citations.length > 0 && res.confidence_score) ? res.confidence_score : undefined;
 
     try {
       await fetch('http://localhost:5000/api/v1/chat/messages', {
@@ -183,6 +182,7 @@ export default function AIChatWorkspace() {
       });
     } catch (err) {}
 
+    const currentAgentInfo = agentList.find(a => a.id === selectedAgent) || agentList[0];
     setMessages((prev) => [
       ...prev,
       {
@@ -190,9 +190,9 @@ export default function AIChatWorkspace() {
         text: assistantText,
         citations,
         confidence: confidenceScore,
-        agentName: res.agent_name || selectedAgent,
-        provider: res.provider || 'Supercore AI',
-      },
+        agentName: currentAgentInfo.name,
+        provider: 'eCourt Judicial Engine'
+      }
     ]);
     setLoading(false);
   };
@@ -208,11 +208,11 @@ export default function AIChatWorkspace() {
       setMessages([
         {
           sender: 'ASSISTANT',
-          text: `Chat history reset. Ask me any question regarding Indian law under the **${currentAgentInfo.name}** context.`,
+          text: `Chamber record cleared. Ready for your next legal consultation under **${currentAgentInfo.name}**.`,
           citations: [],
           confidence: 99.0,
           agentName: currentAgentInfo.name,
-          provider: 'Supercore AI'
+          provider: 'eCourt Judicial Engine'
         }
       ]);
     } catch (e) {
@@ -220,195 +220,192 @@ export default function AIChatWorkspace() {
     }
   };
 
-  // Modern UI parser converting text section blocks into beautiful card components
+  // Inline text formatter for **bold**, *italic*, and `code`
+  const formatInlineText = (text: string): React.ReactNode => {
+    const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+        return (
+          <strong key={index} className="font-bold text-slate-900 dark:text-white">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      if (part.startsWith('*') && part.endsWith('*') && part.length >= 2) {
+        return (
+          <em key={index} className="italic text-slate-800 dark:text-slate-200">
+            {part.slice(1, -1)}
+          </em>
+        );
+      }
+      if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
+        return (
+          <code key={index} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 font-mono text-[11px] border border-slate-200/80 dark:border-slate-700/60">
+            {part.slice(1, -1)}
+          </code>
+        );
+      }
+      return part;
+    });
+  };
+
+  const renderBlockText = (content: string): React.ReactNode => {
+    const blocks = content.split(/\n\s*\n/);
+
+    return blocks.map((block, bIdx) => {
+      const trimmed = block.trim();
+      if (!trimmed) return null;
+
+      if (/^#{1,4}\s+/.test(trimmed)) {
+        const headingTitle = trimmed.replace(/^#{1,4}\s+/, '').replace(/\*\*/g, '').trim();
+        return (
+          <div key={bIdx} className="pt-2 pb-1 border-b border-slate-200/80 dark:border-slate-700/60 flex items-center gap-2">
+            <span className="w-1.5 h-3 bg-blue-600 dark:bg-blue-400 rounded-full inline-block" />
+            <h4 className="font-bold text-xs md:text-sm text-slate-900 dark:text-white tracking-tight">
+              {headingTitle}
+            </h4>
+          </div>
+        );
+      }
+
+      const lines = trimmed.split('\n');
+      const isList = lines.every(l => !l.trim() || /^(\s*[-*•]|\s*\d+[\.\)])\s+/.test(l));
+
+      if (isList) {
+        return (
+          <ul key={bIdx} className="space-y-1.5 pl-1 my-1">
+            {lines.map((line, lIdx) => {
+              const lTrim = line.trim();
+              if (!lTrim) return null;
+              const cleanLine = lTrim.replace(/^([-*•]|\d+[\.\)])\s+/, '');
+              return (
+                <li key={lIdx} className="flex items-start gap-2 text-xs md:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold text-xs mt-0.5">•</span>
+                  <span className="flex-1">{formatInlineText(cleanLine)}</span>
+                </li>
+              );
+            })}
+          </ul>
+        );
+      }
+
+      return (
+        <p key={bIdx} className="text-xs md:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+          {lines.map((line, lIdx) => {
+            const lTrim = line.trim();
+            if (/^([-*•]|\d+[\.\)])\s+/.test(lTrim)) {
+              const cleanItem = lTrim.replace(/^([-*•]|\d+[\.\)])\s+/, '');
+              return (
+                <span key={lIdx} className="flex items-start gap-2 my-1 pl-1">
+                  <span className="text-blue-600 dark:text-blue-400 font-bold text-xs mt-0.5">•</span>
+                  <span className="flex-1">{formatInlineText(cleanItem)}</span>
+                </span>
+              );
+            }
+            return (
+              <React.Fragment key={lIdx}>
+                {formatInlineText(line)}
+                {lIdx < lines.length - 1 && <br />}
+              </React.Fragment>
+            );
+          })}
+        </p>
+      );
+    });
+  };
+
   const renderFormattedResponse = (text: string) => {
-    // Remove raw emojis/symbols in an ES5-compatible manner
-    let cleanText = text
+    let cleanText = (text || '')
       .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '')
       .replace(/[\u2600-\u27BF]/g, '');
 
-    const sections = [
-      { key: 'Direct Legal Answer & Statutory Ratio', label: 'Direct Legal Answer & Statutory Ratio', icon: Scale, color: 'border-slate-300 bg-slate-50/50 text-slate-800' },
-      { key: 'Key Rights & Remedies Available', label: 'Key Rights & Remedies Available', icon: ShieldCheck, color: 'border-indigo-500 bg-indigo-50/30 text-slate-800' },
-      { key: 'Step-by-Step Action Plan / Filing Guidance', label: 'Step-by-Step Action Plan / Filing Guidance', icon: CheckSquare, color: 'border-emerald-500 bg-emerald-50/30 text-slate-800' },
-      { key: 'Grounded Statutory & Precedent Footnotes', label: 'Grounded Statutory & Precedent Footnotes', icon: BookOpen, color: 'border-amber-500 bg-amber-50/30 text-slate-800' }
-    ];
-
-    let isStructured = false;
-    for (const s of sections) {
-      if (cleanText.includes(s.key)) {
-        isStructured = true;
-        break;
-      }
-    }
-
-    if (!isStructured) {
-      return <div className="whitespace-pre-wrap leading-relaxed">{cleanText}</div>;
-    }
-
-    const parts = cleanText.split(/(\*\*Direct Legal Answer & Statutory Ratio\*\*|\*\*Key Rights & Remedies Available\*\*|\*\*Step-by-Step Action Plan \/ Filing Guidance\*\*|\*\*Grounded Statutory & Precedent Footnotes\*\*|Direct Legal Answer & Statutory Ratio|Key Rights & Remedies Available|Step-by-Step Action Plan \/ Filing Guidance|Grounded Statutory & Precedent Footnotes)/g);
-
-    const renderedElements: React.ReactNode[] = [];
-    let currentHeader = '';
-
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i].trim();
-      if (!part) continue;
-
-      const matchedSection = sections.find(s => 
-        part.includes(s.key) || 
-        part.replace(/\*/g, '').trim() === s.key
-      );
-
-      if (matchedSection) {
-        currentHeader = matchedSection.key;
-      } else {
-        if (currentHeader) {
-          const sect = sections.find(s => s.key === currentHeader)!;
-          const IconComponent = sect.icon;
-          renderedElements.push(
-            <div key={i} className={`p-4 rounded-2xl border-l-4 ${sect.color} shadow-2xs space-y-2`}>
-              <div className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                <IconComponent className="h-4 w-4 text-indigo-600" />
-                <span>{sect.label}</span>
-              </div>
-              <div className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed font-semibold">
-                {part.replace(/^[:\s\-*]+/g, '').trim()}
-              </div>
-            </div>
-          );
-          currentHeader = '';
-        } else {
-          renderedElements.push(
-            <div key={i} className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed font-semibold">
-              {part}
-            </div>
-          );
-        }
-      }
-    }
-
-    return <div className="space-y-3.5">{renderedElements}</div>;
-  };
-
-  if (!user) {
     return (
-      <div className="max-w-md mx-auto text-center py-16 space-y-6">
-        <div className="h-16 w-16 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto shadow-sm">
-          <Lock className="h-8 w-8" />
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-xl font-extrabold text-slate-900">Sign In to Save Chat History</h2>
-          <p className="text-xs text-slate-500 font-medium leading-relaxed">
-            Persistent legal chats, case records, and RAG histories are stored securely in your private encrypted database space.
-          </p>
-        </div>
-        <div className="flex flex-col gap-2.5">
-          <Link 
-            href="/register" 
-            className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs transition"
-          >
-            Create Free Account
-          </Link>
-          <Link 
-            href="/auth" 
-            className="w-full py-3 rounded-2xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-extrabold text-xs transition flex items-center justify-center gap-1.5"
-          >
-            <LogIn className="h-3.5 w-3.5" />
-            <span>Sign In to Existing Account</span>
-          </Link>
-        </div>
+      <div className="space-y-2.5 text-xs md:text-sm leading-relaxed">
+        {renderBlockText(cleanText)}
       </div>
     );
-  }
+  };
 
   const activeAgentInfo = agentList.find(a => a.id === selectedAgent) || agentList[0];
 
   return (
-    <div className="space-y-6 min-h-screen relative pb-12">
-      {/* Background premium grid layout */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,#e2e8f0_1px,transparent_0)] bg-[size:24px_24px] pointer-events-none opacity-60"></div>
-      
-      {/* Header section with high-end premium details */}
-      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200">
-        <div className="space-y-1">
-          <h1 className="text-xl font-extrabold text-slate-900 flex items-center gap-2">
-            <Scale className="h-5 w-5 text-indigo-600" />
-            Aura AI Workspace
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800/80">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            AI Co-Counsel & Advisory Chambers
           </h1>
-          <p className="text-xs text-slate-500 font-bold">
-            Interactive, statutory-grounded consulting environment connected to BNS, BNSS, and landmark precedents.
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+            Role-grounded statutory RAG engine with zero hallucinations and direct Bare Act concordance.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-slate-100 border border-slate-200 text-[10px] text-slate-700 font-extrabold shadow-2xs">
-            <Cpu className="h-3.5 w-3.5 text-indigo-600" /> Grounded AI Engine
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs">
+            <ShieldCheck className="h-4 w-4 text-emerald-500" />
+            <span className="text-slate-900 dark:text-white font-bold">{activeAgentInfo.name}</span>
           </div>
           <button
             onClick={handleClearChat}
-            className="p-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-bold border border-slate-200 transition"
-            title="Reset Session History"
+            className="p-2 rounded-xl bg-white/80 dark:bg-slate-800/80 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 text-xs border border-slate-200/80 dark:border-slate-700/60 transition cursor-pointer shadow-xs"
+            title="Reset Chamber Session"
           >
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </div>
 
-      {/* Main layout thread */}
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main workspace layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
         {/* Main conversation box */}
-        <div className="lg:col-span-2 bg-white/80 backdrop-blur-md rounded-3xl border border-slate-200 shadow-sm flex flex-col h-[580px]">
+        <div className="lg:col-span-2 bg-white/85 dark:bg-slate-900/60 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs backdrop-blur-xl flex flex-col h-[600px] overflow-hidden">
+          
           {/* Active Agent Info Banner */}
-          <div className="p-4 border-b border-slate-100 bg-slate-50/80 rounded-t-3xl flex items-center justify-between">
+          <div className="p-3.5 border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-100/60 dark:bg-slate-800/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-indigo-600 animate-pulse"></span>
-              <span className="text-xs font-bold text-slate-950">Active Engine: {activeAgentInfo.name}</span>
+              <span className="h-2 w-2 rounded-full bg-blue-600 animate-pulse" />
+              <span className="font-bold text-xs text-slate-900 dark:text-white">Counsel: {activeAgentInfo.name}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
-                Statutory Verified
-              </span>
-            </div>
+            <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400 font-semibold">
+              Sub-second Bare Act RAG
+            </span>
           </div>
 
           {/* Message Thread Scroll Area */}
           <div className="flex-1 p-5 overflow-y-auto space-y-4">
             {messages.map((msg, i) => (
               <div key={i} className={`flex flex-col ${msg.sender === 'USER' ? 'items-end' : 'items-start'}`}>
-                <div className={`max-w-[90%] p-4 rounded-2xl ${
+                <div className={`max-w-[88%] p-4 rounded-2xl ${
                   msg.sender === 'USER'
-                    ? 'bg-indigo-600 text-white rounded-br-none shadow-sm font-semibold'
-                    : 'bg-slate-50/80 border border-slate-200 text-slate-900 rounded-bl-none shadow-2xs'
+                    ? 'bg-blue-600 text-white rounded-br-none shadow-md shadow-blue-500/20'
+                    : 'bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-slate-900 dark:text-slate-100 rounded-bl-none shadow-xs'
                 }`}>
                   {msg.sender === 'ASSISTANT' && (
-                    <div className="flex items-center justify-between text-[9px] text-slate-400 pb-2 mb-2 border-b border-slate-150">
-                      <span className="font-bold text-indigo-600 uppercase tracking-wider">
-                        {msg.agentName || 'AI Counsel'}
+                    <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 pb-2 mb-2 border-b border-slate-200/80 dark:border-slate-700/60">
+                      <span className="font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                        {msg.agentName || 'eCourt Counsel'}
                       </span>
-                      {msg.confidence && (
-                        <span className="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">
-                          {msg.confidence}% Statutorily Grounded
-                        </span>
-                      )}
                     </div>
                   )}
 
-                  <div className="space-y-1">
+                  <div>
                     {msg.sender === 'ASSISTANT' ? renderFormattedResponse(msg.text) : msg.text}
                   </div>
 
                   {/* Precedent references footnotes */}
                   {msg.citations && msg.citations.length > 0 && (
-                    <div className="pt-3 mt-3 border-t border-slate-200 space-y-1.5">
-                      <p className="text-[9px] font-extrabold text-indigo-600 uppercase tracking-wider flex items-center gap-1">
-                        <BookOpen className="h-3 w-3" /> Grounded Statutory Citations:
+                    <div className="pt-3 mt-3 border-t border-slate-200/80 dark:border-slate-700/60 space-y-2">
+                      <p className="text-[11px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <BookOpen className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" /> Grounded Statutory Citations:
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {msg.citations.map((c, idx) => (
-                          <div key={idx} className="p-2 rounded-xl bg-white text-[10px] border border-slate-200 text-slate-600 flex items-center justify-between shadow-3xs font-medium">
-                            <span className="truncate pr-1"><strong>{c.source}</strong> ({c.reference})</span>
-                            <span className="text-[9px] bg-slate-50 text-slate-500 px-1 py-0.2 rounded font-bold border border-slate-100 shrink-0">
-                              {(c.relevance_score * 100).toFixed(0)}% Match
+                          <div key={idx} className="p-2.5 rounded-xl bg-white dark:bg-slate-900/80 text-[11px] border border-slate-200/80 dark:border-slate-700/60 text-slate-800 dark:text-slate-200 flex items-center justify-between shadow-xs">
+                            <span className="truncate pr-2 font-medium"><strong>{c.source}</strong> ({c.reference})</span>
+                            <span className="text-[10px] bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded font-semibold border border-blue-500/20 shrink-0">
+                              Statute
                             </span>
                           </div>
                         ))}
@@ -419,26 +416,26 @@ export default function AIChatWorkspace() {
               </div>
             ))}
             {loading && (
-              <div className="flex items-center gap-2 text-slate-600 text-xs p-3 rounded-2xl bg-slate-50 border border-slate-200 w-fit">
-                <RefreshCw className="h-3.5 w-3.5 animate-spin text-indigo-600" />
-                <span className="font-semibold">Retrieving relevant statutory chapters and analyzing Indian penal codes...</span>
+              <div className="flex items-center gap-2.5 text-slate-600 dark:text-slate-300 text-xs p-3.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 w-fit">
+                <RefreshCw className="h-3.5 w-3.5 animate-spin text-blue-600 dark:text-blue-400" />
+                <span className="font-medium">Synthesizing relevant statutory chapters and precedents...</span>
               </div>
             )}
           </div>
 
           {/* Form input controls */}
-          <form onSubmit={handleSend} className="p-3 border-t border-slate-200 bg-slate-50/60 rounded-b-3xl flex items-center gap-2">
+          <form onSubmit={handleSend} className="p-3 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-100/60 dark:bg-slate-800/50 flex items-center gap-2">
             <input
               type="text"
               value={userQuery}
               onChange={(e) => setUserQuery(e.target.value)}
-              placeholder={`Ask ${activeAgentInfo.name} any legal question under Indian Jurisdiction...`}
-              className="flex-1 glass-input px-4 py-2.5 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none"
+              placeholder={`Consult ${activeAgentInfo.name} on Indian statutes, case facts, or legal motions...`}
+              className="flex-1 bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-700/60 px-4 py-2.5 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500"
             />
             <button
               type="submit"
-              disabled={loading}
-              className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/10 flex items-center gap-1.5 disabled:opacity-50 transition"
+              disabled={loading || !userQuery.trim()}
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs shadow-md shadow-blue-500/25 flex items-center gap-1.5 disabled:opacity-40 transition cursor-pointer"
             >
               <span>Submit</span>
               <Send className="h-3.5 w-3.5" />
@@ -446,42 +443,47 @@ export default function AIChatWorkspace() {
           </form>
         </div>
 
-        {/* Informative practice panel */}
-        <div className="bg-white/90 backdrop-blur-md p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
-          <h3 className="text-xs font-extrabold text-slate-950 uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-slate-100">
-            <Info className="h-4 w-4 text-indigo-600" />
-            Workspace Instructions
-          </h3>
-
-          <div className="p-4 rounded-2xl bg-indigo-50/30 border border-indigo-150 text-xs text-slate-700 space-y-2.5 font-medium leading-relaxed">
-            <p>
-              Your agent context has been automatically adjusted based on your logged-in profile.
-            </p>
-            <div className="flex items-start gap-2 pt-1">
-              <ShieldCheck className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
-              <span><strong>Active Context:</strong> {activeAgentInfo.roleDescription}</span>
+        {/* Right Info and Quick Queries Panel */}
+        <div className="bg-white/85 dark:bg-slate-900/60 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs backdrop-blur-xl space-y-5 h-fit">
+          <div className="pb-3 border-b border-slate-200/80 dark:border-slate-800/80">
+            <div className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+              <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              Chamber Consultation Context
             </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Active persona tailored for your operating profile.
+            </p>
           </div>
 
-          <div className="space-y-2">
-            <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Example Legal Queries</h4>
+          <div className="p-4 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs text-slate-800 dark:text-slate-200 space-y-2 leading-relaxed">
+            <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-white">
+              <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              <span>{activeAgentInfo.name}</span>
+            </div>
+            <p className="text-slate-600 dark:text-slate-400 text-[11px]">{activeAgentInfo.roleDescription}</p>
+          </div>
+
+          <div className="space-y-2.5">
+            <div className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              Example Jurisprudential Queries
+            </div>
             <button
               onClick={() => setUserQuery("What constitutional remedies exist under Article 21 and Article 32 if police detain someone without disclosing grounds?")}
-              className="w-full text-left p-3 rounded-2xl bg-slate-50 border border-slate-200 hover:border-indigo-500 text-xs text-slate-700 font-semibold transition"
+              className="w-full text-left p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 hover:border-blue-500 text-xs text-slate-800 dark:text-slate-200 font-medium transition cursor-pointer leading-snug"
             >
-              Constitutional Writs & Art 21 Detention Remedies
+              Constitutional Writs & Art. 21 Detention Safeguards
             </button>
             <button
               onClick={() => setUserQuery("Explain the punishment for Mob Lynching under Section 103(2) of Bharatiya Nyaya Sanhita 2023.")}
-              className="w-full text-left p-3 rounded-2xl bg-slate-50 border border-slate-200 hover:border-indigo-500 text-xs text-slate-700 font-semibold transition"
+              className="w-full text-left p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 hover:border-blue-500 text-xs text-slate-800 dark:text-slate-200 font-medium transition cursor-pointer leading-snug"
             >
-              Mob Lynching Penalty under Sec 103(2) BNS 2023
+              Mob Lynching Penalty under Section 103(2) BNS 2023
             </button>
             <button
               onClick={() => setUserQuery("What are the twin conditions for bail under Section 45 of PMLA 2002?")}
-              className="w-full text-left p-3 rounded-2xl bg-slate-50 border border-slate-200 hover:border-indigo-500 text-xs text-slate-700 font-semibold transition"
+              className="w-full text-left p-3 rounded-xl bg-slate-100/70 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 hover:border-blue-500 text-xs text-slate-800 dark:text-slate-200 font-medium transition cursor-pointer leading-snug"
             >
-              PMLA Sec 45 Twin Bail Conditions & ED Arrest
+              PMLA Sec 45 Twin Bail Requirements & Burden of Proof
             </button>
           </div>
         </div>

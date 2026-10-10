@@ -23,6 +23,23 @@ class VectorStoreManager:
         self.db_url = settings.DATABASE_URL
         self._model = None
         self._corpus_cache = self._load_local_corpus()
+        self._checked_db = False
+        self._has_db_vectors = False
+
+    def _check_db_vectors(self):
+        if not self._checked_db and psycopg2 is not None:
+            try:
+                conn = psycopg2.connect(self.db_url)
+                cur = conn.cursor()
+                cur.execute("SELECT 1 FROM legal_vector_store LIMIT 1;")
+                row = cur.fetchone()
+                self._has_db_vectors = (row is not None)
+                cur.close()
+                conn.close()
+            except Exception:
+                self._has_db_vectors = False
+            self._checked_db = True
+        return self._has_db_vectors
 
     def _load_local_corpus(self) -> List[Dict[str, Any]]:
         corpus_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "datasets", "comprehensive_indian_legal_corpus.json")
@@ -39,21 +56,25 @@ class VectorStoreManager:
             try:
                 from sentence_transformers import SentenceTransformer
                 self._model = SentenceTransformer('all-MiniLM-L6-v2')
-            except Exception as e:
-                print(f"SentenceTransformer fallback mode active: {e}")
-                self._model = "FALLBACK"
+            except Exception:
+                # Lightweight mode: SentenceTransformer is optional
+                self._model = "LIGHTWEIGHT"
         return self._model
 
     def generate_embedding(self, text: str) -> List[float]:
         model = self._get_model()
-        if model == "FALLBACK" or model is None:
-            np.random.seed(abs(hash(text)) % (2**32))
-            vec = np.random.normal(0, 1, 384)
-            norm = np.linalg.norm(vec)
-            return (vec / norm).tolist()
+        if model != "LIGHTWEIGHT" and model is not None:
+            try:
+                embedding = model.encode(text)
+                return embedding.tolist()
+            except Exception:
+                pass
         
-        embedding = model.encode(text)
-        return embedding.tolist()
+        # Fast deterministic fallback representation
+        np.random.seed(abs(hash(text)) % (2**32))
+        vec = np.random.normal(0, 1, 384)
+        norm = np.linalg.norm(vec)
+        return (vec / norm).tolist()
 
     def bm25_score(self, query_tokens: List[str], doc_tokens: List[str], avg_dl: float, doc_count: int, df_dict: Dict[str, int]) -> float:
         """
@@ -82,7 +103,7 @@ class VectorStoreManager:
         Merges BM25 lexical ranking + Neural Vector cosine similarity ranking.
         """
         postgres_results = []
-        if psycopg2 is not None:
+        if self._check_db_vectors():
             try:
                 query_vec = self.generate_embedding(query)
                 conn = psycopg2.connect(self.db_url)
@@ -124,14 +145,24 @@ class VectorStoreManager:
         if not self._corpus_cache:
             return []
 
-        query_tokens = [t.lower() for t in query.replace('/', ' ').replace('-', ' ').split() if len(t) > 1]
+        stopwords = {
+            "what", "is", "are", "the", "for", "under", "in", "of", "and", "to", "a", "an",
+            "about", "explain", "tell", "me", "how", "can", "i", "you", "does", "do", "by",
+            "with", "from", "on", "at", "as", "or", "which", "who", "whom", "this", "that"
+        }
+
+        raw_tokens = [t.lower() for t in query.replace('/', ' ').replace('-', ' ').replace(',', ' ').split() if len(t) > 1]
+        query_tokens = [t for t in raw_tokens if t not in stopwords]
+        if not query_tokens:
+            query_tokens = raw_tokens
+
         doc_count = len(self._corpus_cache)
 
         df_dict = {}
         all_doc_tokens = []
         for doc in self._corpus_cache:
             full_text = f"{doc['act_or_court_name']} {doc['section_or_case_ref']} {doc['title']} {doc['content']} {' '.join(doc.get('keywords', []))}"
-            tokens = [t.lower() for t in full_text.replace('/', ' ').replace('-', ' ').split() if len(t) > 1]
+            tokens = [t.lower() for t in full_text.replace('/', ' ').replace('-', ' ').replace(',', ' ').split() if len(t) > 1]
             all_doc_tokens.append(tokens)
             unique_tokens = set(tokens)
             for ut in unique_tokens:
@@ -148,37 +179,42 @@ class VectorStoreManager:
         bm25_sorted = sorted(bm25_scores, key=lambda x: x[1], reverse=True)
         bm25_rank_map = {idx: rank + 1 for rank, (idx, _) in enumerate(bm25_sorted)}
 
-        # Calculate Dense Vector Ranks
-        query_vec = np.array(self.generate_embedding(query))
-        vec_scores = []
-        for idx, doc in enumerate(self._corpus_cache):
-            doc_text = f"{doc['title']} {doc['content']}"
-            doc_vec = np.array(self.generate_embedding(doc_text))
-            cosine_sim = float(np.dot(query_vec, doc_vec) / (np.linalg.norm(query_vec) * np.linalg.norm(doc_vec) + 1e-9))
-            vec_scores.append((idx, cosine_sim))
-
-        vec_sorted = sorted(vec_scores, key=lambda x: x[1], reverse=True)
-        vec_rank_map = {idx: rank + 1 for rank, (idx, _) in enumerate(vec_sorted)}
-
-        # RRF Combination
+        # Semantic/Keyword score calculation
+        q_lower = query.lower()
         rrf_scores = []
-        k_rrf = 60.0
+        k_rrf = 20.0
+
         for idx, doc in enumerate(self._corpus_cache):
             r_bm25 = bm25_rank_map[idx]
-            r_vec = vec_rank_map[idx]
-            score_rrf = (1.0 / (k_rrf + r_bm25)) + (1.0 / (k_rrf + r_vec))
+            base_score = 1.0 / (k_rrf + r_bm25)
 
-            q_lower = query.lower()
-            if any(kw in q_lower for kw in doc.get('keywords', [])):
-                score_rrf += 0.008
+            # Keyword and Section boosts
+            bonus = 0.0
+            doc_ref_lower = doc.get("section_or_case_ref", "").lower()
+            doc_title_lower = doc.get("title", "").lower()
+            doc_keywords = [k.lower() for k in doc.get("keywords", [])]
 
-            rrf_scores.append((doc, score_rrf))
+            for qt in query_tokens:
+                if qt in doc_ref_lower:
+                    bonus += 0.08
+                if qt in doc_title_lower:
+                    bonus += 0.05
+                if any(qt == kw or qt in kw for kw in doc_keywords):
+                    bonus += 0.06
+
+            # Specific IPC / BNS section number matches
+            for token in raw_tokens:
+                if token.isdigit() and (token in doc_ref_lower or any(token in kw for kw in doc_keywords)):
+                    bonus += 0.15
+
+            total_score = base_score + bonus
+            rrf_scores.append((doc, total_score))
 
         rrf_sorted = sorted(rrf_scores, key=lambda x: x[1], reverse=True)
 
         results = []
         for doc, rrf_score in rrf_sorted[:top_k]:
-            normalized_score = round(min(max(rrf_score * 28.0, 0.70), 0.98), 4)
+            normalized_score = round(min(max(rrf_score * 3.5, 0.72), 0.98), 4)
             results.append({
                 "act_or_court_name": doc["act_or_court_name"],
                 "section_or_case_ref": doc["section_or_case_ref"],

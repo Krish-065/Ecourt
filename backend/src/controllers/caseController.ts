@@ -36,10 +36,27 @@ export async function getCases(req: AuthenticatedRequest, res: Response) {
     const userId = req.user?.userId;
     const role = req.user?.role;
 
-    let query = 'SELECT c.*, u.full_name as client_name, a.full_name as advocate_name FROM cases c LEFT JOIN users u ON c.client_id = u.id LEFT JOIN users a ON c.advocate_id = a.id';
+    let query = `
+      SELECT c.*, 
+             u.full_name as client_name, 
+             a.full_name as advocate_name,
+             h.hearing_date as next_hearing_date,
+             h.judge_name,
+             h.purpose as hearing_purpose
+      FROM cases c 
+      LEFT JOIN users u ON c.client_id = u.id 
+      LEFT JOIN users a ON c.advocate_id = a.id
+      LEFT JOIN LATERAL (
+        SELECT hearing_date, judge_name, purpose 
+        FROM hearings 
+        WHERE case_id = c.id 
+        ORDER BY hearing_date ASC 
+        LIMIT 1
+      ) h ON true
+    `;
     let params: any[] = [];
 
-    if (role === 'CITIZEN') {
+    if (role === 'CITIZEN' || role === 'BUSINESS') {
       query += ' WHERE c.client_id = $1';
       params.push(userId);
     } else if (role === 'ADVOCATE') {

@@ -22,5 +22,6 @@ export const db = new Pool({
   connectionString: config.databaseUrl,
   max: 20,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 15000,
+  ssl: config.databaseUrl.includes('neon.tech') ? { rejectUnauthorized: false } : undefined,
 });
